@@ -14,7 +14,7 @@ namespace CarRentingSystem.Data.Models
         public string Brand { get; set; }
 
         [Required]
-        [MaxLength(CarModelMaxLength)]
+        [StringLength(CarModelMaxLength,MinimumLength=CarModelMinLength)]
         public string Model { get; set; }
 
         [Required]

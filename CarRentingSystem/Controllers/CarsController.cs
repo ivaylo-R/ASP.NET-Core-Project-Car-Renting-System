@@ -15,6 +15,24 @@ namespace CarRentingSystem.Controllers
             this.data = data;
         }
 
+        public IActionResult All()
+        {
+            var cars = this.data
+                .Cars
+                .Select(c => new CarListingViewModel
+                {
+                    Id = c.Id,
+                    Brand = c.Brand,
+                    Category = c.Category.Name,
+                    ImageUrl = c.ImageUrl,
+                    Year = c.Year,
+                    Model = c.Model,
+                })
+                .ToList();
+
+            return View(cars);
+        }
+
         public IActionResult Add() => View();
 
         [HttpPost]
