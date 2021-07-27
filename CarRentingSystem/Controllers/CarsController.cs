@@ -1,7 +1,9 @@
 ﻿using CarRentingSystem.Data;
 using CarRentingSystem.Data.Models;
 using CarRentingSystem.Models.Cars;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace CarRentingSystem.Controllers
@@ -15,10 +17,14 @@ namespace CarRentingSystem.Controllers
             this.data = data;
         }
 
+        public IActionResult Details()
+            => View();
+
         public IActionResult All()
         {
             var cars = this.data
                 .Cars
+                .OrderByDescending(c => c.Id)
                 .Select(c => new CarListingViewModel
                 {
                     Id = c.Id,
@@ -33,19 +39,29 @@ namespace CarRentingSystem.Controllers
             return View(cars);
         }
 
-        public IActionResult Add() => View();
+        public IActionResult Add()
+            => View(new AddCarFormModel
+            {
+                Categories = this.GetCategories()
+            });
 
         [HttpPost]
-        public IActionResult Add(AddCarFormModel car)
+        public IActionResult Add(AddCarFormModel car, IFormFile image)
         {
-            if (data.Cars.Any(c=>c.Id !=car.Id))
+            if (!this.data.Categories.Any(c => c.Id == car.CategoryId))
             {
-                return View("Error");
+                this.ModelState.AddModelError(nameof(car.CategoryId), "Category does not exist.");
+            }
+
+            if (!ModelState.IsValid)
+            {
+                car.Categories = this.GetCategories();
+
+                return View(car);
             }
 
             var carData = new Car
             {
-                Id = car.Id,
                 Brand = car.Brand,
                 Model = car.Model,
                 Year = car.Year,
@@ -58,7 +74,17 @@ namespace CarRentingSystem.Controllers
 
             data.SaveChanges();
 
-            return Redirect("Home");
+            return RedirectToAction(nameof(All));
         }
+
+        private IEnumerable<CarCategoryViewModel> GetCategories()
+            => this.data
+                .Categories
+                .Select(c => new CarCategoryViewModel
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                })
+            .ToList();
     }
 }

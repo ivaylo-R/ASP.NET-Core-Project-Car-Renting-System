@@ -1,22 +1,39 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using CarRentingSystem.Data;
+using CarRentingSystem.Data.Models;
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 
 namespace CarRentingSystem.Models.Cars
 {
+
+    using static DataConstants;
+
     public class AddCarFormModel
     {
-        public int Id { get; init; }
-
+        [Required]
+        [StringLength(CarBrandMaxLength,MinimumLength =CarBrandMinLength)]
         public string Brand { get; init; }
 
+        [Required]
+        [StringLength(CarModelMaxLength, MinimumLength = CarModelMinLength)]
         public string Model { get; init; }
 
+        [Required]
+        [StringLength(CarDescriptionMaxLength,MinimumLength =CarDescriptionMinLength)]
         public string Description { get; init; }
 
+        [Required]
+        [Display(Name = "Image URL")]
+        [Url]
         public string ImageUrl { get; init; }
 
+        [Range(CarYearMinValue,CarYearMaxValue)]
         public int Year { get; init; }
 
+        [Display(Name ="Category")]
         public int CategoryId { get; init; }
+
+        public IEnumerable<CarCategoryViewModel> Categories { get; set; }
 
     }
 }
