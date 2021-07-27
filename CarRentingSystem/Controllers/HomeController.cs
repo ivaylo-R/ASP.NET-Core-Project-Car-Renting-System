@@ -1,6 +1,7 @@
 ﻿using CarRentingSystem.Data;
 using CarRentingSystem.Models;
 using CarRentingSystem.Models.Cars;
+using CarRentingSystem.Models.Home;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 using System.Linq;
@@ -18,14 +19,15 @@ namespace CarRentingSystem.Controllers
 
         public IActionResult Index()
         {
+            var totalCars = this.data.Cars.Count();
+            
             var cars = this.data
                 .Cars
                 .OrderByDescending(c => c.Id)
-                .Select(c => new CarListingViewModel
+                .Select(c => new CarIndexViewModel
                 {
                     Id = c.Id,
                     Brand = c.Brand,
-                    Category = c.Category.Name,
                     ImageUrl = c.ImageUrl,
                     Year = c.Year,
                     Model = c.Model,
@@ -33,7 +35,11 @@ namespace CarRentingSystem.Controllers
                 .Take(3)
                 .ToList();
 
-            return View(cars);
+            return View(new IndexViewModel
+            {
+                TotalCars=totalCars,
+                Cars=cars,
+            });
         }
 
         public IActionResult Error() => View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
