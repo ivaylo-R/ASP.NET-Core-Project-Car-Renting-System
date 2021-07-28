@@ -1,6 +1,10 @@
 ﻿using CarRentingSystem.Data;
 using CarRentingSystem.Data.Models;
+using CarRentingSystem.Models;
+using CarRentingSystem.Models.Api.Cars;
 using CarRentingSystem.Models.Cars;
+using CarRentingSystem.Services.Cars.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -10,67 +14,33 @@ namespace CarRentingSystem.Controllers
 {
     public class CarsController : Controller
     {
-        private CarRentingDbContext data;
+        private readonly CarRentingDbContext data;
+        private readonly ICarService carService;
 
-        public CarsController(CarRentingDbContext data)
+        public CarsController(CarRentingDbContext data, 
+            ICarService carService)
         {
             this.data = data;
+            this.carService = carService;
         }
 
         public IActionResult Details()
             => View();
 
-        public IActionResult All([FromQuery]AllCarsQueryModel query)
+        public IActionResult All([FromQuery] AllCarsQueryModel query)
         {
-            var carsQuery = this.data.Cars.AsQueryable();
+            var queryResult = this.carService.All(
+                query.Brand,
+                query.SearchTerm,
+                query.Sorting,
+                query.CurrentPage,
+                AllCarsQueryModel.CarsPerPage);
 
-            if (!string.IsNullOrWhiteSpace(query.Brand))
-            {
-                carsQuery = carsQuery.Where(c =>
-                      c.Brand == query.Brand);
-            }
+            var carBrands = this.carService.AllCarBrands();
 
-            if (!string.IsNullOrWhiteSpace(query.SearchTerm))
-            {
-                carsQuery = carsQuery.Where(c =>
-                      (c.Brand + " " + c.Model).ToLower().Contains(query.SearchTerm.ToLower()) ||
-                      c.Description.ToLower().Contains(query.SearchTerm.ToLower()));
-            }
-
-            carsQuery = query.Sorting switch
-            {
-                CarSorting.Year=>carsQuery.OrderByDescending(c=>c.Year),
-                CarSorting.Brand=>carsQuery.OrderBy(c=>c.Brand),
-                CarSorting.Model=>carsQuery.OrderBy(c=>c.Model),
-                CarSorting.DateCreated or _=> carsQuery.OrderByDescending(c => c.Id)
-            };
-
-            var totalCars = carsQuery.Count();
-
-            var cars =
-                carsQuery
-                .Skip((query.CurrentPage-1)* AllCarsQueryModel.CarsPerPage)
-                .Take(AllCarsQueryModel.CarsPerPage)
-                .Select(c => new CarListingViewModel
-                {
-                    Id = c.Id,
-                    Brand = c.Brand,
-                    Category = c.Category.Name,
-                    ImageUrl = c.ImageUrl,
-                    Year = c.Year,
-                    Model = c.Model,
-                })
-                .ToList();
-
-            var carBrands = this.data
-                .Cars
-                .Select(c => c.Brand)
-                .Distinct()
-                .ToList();
-
-            query.Cars = cars;
+            query.Cars = queryResult.Cars;
             query.Brands = carBrands;
-            query.TotalCars = totalCars;
+            query.TotalCars = queryResult.TotalCars;
 
 
             return View(query);
@@ -83,6 +53,7 @@ namespace CarRentingSystem.Controllers
             });
 
         [HttpPost]
+        [Authorize]
         public IActionResult Add(AddCarFormModel car, IFormFile image)
         {
             if (!this.data.Categories.Any(c => c.Id == car.CategoryId))

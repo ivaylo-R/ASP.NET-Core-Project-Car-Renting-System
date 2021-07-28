@@ -1,5 +1,9 @@
 using CarRentingSystem.Data;
 using CarRentingSystem.Infrastucture;
+using CarRentingSystem.Services.Cars;
+using CarRentingSystem.Services.Cars.Interfaces;
+using CarRentingSystem.Services.Statistics;
+using CarRentingSystem.Services.Statistics.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.HttpsPolicy;
@@ -41,6 +45,9 @@ namespace CarRentingSystem
             })
                 .AddEntityFrameworkStores<CarRentingDbContext>();
             services.AddControllersWithViews();
+
+            services.AddTransient<IStatisticService, StatisticsService>();
+            services.AddTransient<ICarService, CarService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
