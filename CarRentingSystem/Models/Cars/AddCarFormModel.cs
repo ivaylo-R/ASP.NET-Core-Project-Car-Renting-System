@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations;
 namespace CarRentingSystem.Models.Cars
 {
 
-    using static DataConstants;
+    using static DataConstants.Car;
 
     public class AddCarFormModel
     {

@@ -1,9 +1,10 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace CarRentingSystem.Data.Models
 {
 
-    using static DataConstants;
+    using static DataConstants.Car;
 
     public class Car
     {
@@ -14,7 +15,7 @@ namespace CarRentingSystem.Data.Models
         public string Brand { get; set; }
 
         [Required]
-        [StringLength(CarModelMaxLength,MinimumLength=CarModelMinLength)]
+        [StringLength(CarModelMaxLength, MinimumLength = CarModelMinLength)]
         public string Model { get; set; }
 
         [Required]
@@ -30,5 +31,9 @@ namespace CarRentingSystem.Data.Models
         public int CategoryId { get; set; }
 
         public Category Category { get; set; }
+
+        public int DealerId { get; init; }
+
+        public Dealer Dealer { get; init; }
     }
 }

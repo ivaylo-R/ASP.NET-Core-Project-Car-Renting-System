@@ -1,5 +1,6 @@
 ﻿using CarRentingSystem.Data;
 using CarRentingSystem.Data.Models;
+using CarRentingSystem.Infrastucture;
 using CarRentingSystem.Models;
 using CarRentingSystem.Models.Api.Cars;
 using CarRentingSystem.Models.Cars;
@@ -9,6 +10,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 
 namespace CarRentingSystem.Controllers
 {
@@ -16,6 +18,7 @@ namespace CarRentingSystem.Controllers
     {
         private readonly CarRentingDbContext data;
         private readonly ICarService carService;
+        
 
         public CarsController(CarRentingDbContext data, 
             ICarService carService)
@@ -47,15 +50,33 @@ namespace CarRentingSystem.Controllers
         }
 
         public IActionResult Add()
-            => View(new AddCarFormModel
+        {
+            if (!this.UserIsDealer())
+            {
+                return RedirectToAction(nameof(DealersController.Become), "Dealers");
+            }
+
+            return View(new AddCarFormModel
             {
                 Categories = this.GetCategories()
             });
+        }
+            
 
         [HttpPost]
         [Authorize]
         public IActionResult Add(AddCarFormModel car, IFormFile image)
         {
+            var dealerId = this.data.Dealers
+                .Where(d => d.UserId == this.User.GetId()).
+                Select(d => d.Id)
+                .FirstOrDefault();
+
+            if (dealerId==0)
+            {
+                return RedirectToAction(nameof(DealersController.Become), "Dealers");
+            }
+
             if (!this.data.Categories.Any(c => c.Id == car.CategoryId))
             {
                 this.ModelState.AddModelError(nameof(car.CategoryId), "Category does not exist.");
@@ -76,6 +97,7 @@ namespace CarRentingSystem.Controllers
                 ImageUrl = car.ImageUrl,
                 CategoryId = car.CategoryId,
                 Description = car.Description,
+                DealerId=dealerId,
             };
 
             data.Cars.Add(carData);
@@ -94,5 +116,10 @@ namespace CarRentingSystem.Controllers
                     Name = c.Name,
                 })
             .ToList();
+
+        private bool UserIsDealer()
+            => this.data
+                .Dealers
+                .Any(d => d.UserId == this.User.GetId());
     }
 }
