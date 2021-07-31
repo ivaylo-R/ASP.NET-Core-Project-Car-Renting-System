@@ -11,6 +11,8 @@ namespace CarRentingSystem.Services.Cars.Interfaces
             int currentPage,
             int carsPerPage);
 
+        IEnumerable<CarServiceModel> ByUser(string userId);
+
         IEnumerable<string> AllCarBrands();
     }
 }

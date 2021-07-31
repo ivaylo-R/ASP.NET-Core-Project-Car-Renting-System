@@ -1,4 +1,5 @@
 ﻿using CarRentingSystem.Data;
+using CarRentingSystem.Data.Models;
 using CarRentingSystem.Models;
 using CarRentingSystem.Services.Cars.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -14,7 +15,7 @@ namespace CarRentingSystem.Services.Cars
         public CarService(CarRentingDbContext data)
             => this.data = data;
 
-        public CarQueryServiceModel All([FromQuery] 
+        public CarQueryServiceModel All([FromQuery]
             string brand,
             string searchTerm,
             CarSorting sorting,
@@ -48,18 +49,9 @@ namespace CarRentingSystem.Services.Cars
             var totalCars = carsQuery.Count();
 
             var cars =
-                carsQuery
+                GetCars(carsQuery)
                 .Skip((currentPage - 1) * carsPerPage)
                 .Take(carsPerPage)
-                .Select(c => new CarServiceModel
-                {
-                    Id = c.Id,
-                    Brand = c.Brand,
-                    Category = c.Category.Name,
-                    ImageUrl = c.ImageUrl,
-                    Year = c.Year,
-                    Model = c.Model,
-                })
                 .ToList();
 
             return new CarQueryServiceModel
@@ -67,7 +59,7 @@ namespace CarRentingSystem.Services.Cars
                 TotalCars = totalCars,
                 Cars = cars,
                 CurrentPage = currentPage,
-                CarsPerPage=carsPerPage,
+                CarsPerPage = carsPerPage,
             };
         }
 
@@ -77,6 +69,28 @@ namespace CarRentingSystem.Services.Cars
                 .Select(c => c.Brand)
                 .Distinct()
                 .ToList();
+
+        public IEnumerable<CarServiceModel> ByUser(string userId)
+            => this.GetCars(
+                this.data
+                .Cars
+                .Where(u => u.Dealer.UserId == userId));
+                
+
+
+
+        private IEnumerable<CarServiceModel> GetCars(IQueryable<Car> carsQuery)
+            => carsQuery
+                 .Select(c => new CarServiceModel
+                 {
+                     Id = c.Id,
+                     Brand = c.Brand,
+                     Category = c.Category.Name,
+                     ImageUrl = c.ImageUrl,
+                     Year = c.Year,
+                     Model = c.Model,
+                 });
+
 
     }
 }

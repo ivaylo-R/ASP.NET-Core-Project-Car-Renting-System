@@ -2,6 +2,7 @@
 using CarRentingSystem.Data.Models;
 using CarRentingSystem.Infrastucture;
 using CarRentingSystem.Models.Dealers;
+using CarRentingSystem.Services.Dealers.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Linq;
@@ -10,10 +11,10 @@ namespace CarRentingSystem.Controllers
 {
     public class DealersController : Controller
     {
-        private readonly CarRentingDbContext data;
+        private readonly IDealerService dealerService;
 
-        public DealersController(CarRentingDbContext data)
-            =>this.data = data;
+        public DealersController(IDealerService dealerService)
+            => this.dealerService = dealerService;
 
 
         [Authorize]
@@ -25,11 +26,8 @@ namespace CarRentingSystem.Controllers
         {
             var userId = this.User.GetId();
 
-            var userIsAlreadyDealer = this.data
-                .Dealers
-                .Any(d => d.UserId == userId);
 
-            if (userIsAlreadyDealer)
+            if (dealerService.IsDealer(userId))
             {
                 return BadRequest();
             }
@@ -39,16 +37,7 @@ namespace CarRentingSystem.Controllers
                 return View(dealer);
             }
 
-            var dealerData = new Dealer
-            {
-                PhoneNumber = dealer.PhoneNumber,
-                Name = dealer.Name,
-                UserId = userId,
-            };
-
-            this.data.Dealers.Add(dealerData);
-
-            this.data.SaveChanges();
+            dealerService.RegisterDealer(dealer, userId);
 
             return RedirectToAction("All","Cars");
         }

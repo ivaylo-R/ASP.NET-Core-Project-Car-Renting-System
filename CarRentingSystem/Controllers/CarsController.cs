@@ -49,6 +49,10 @@ namespace CarRentingSystem.Controllers
             return View(query);
         }
 
+        [Authorize]
+        public IActionResult Mine()
+            => View(this.carService.ByUser(this.User.GetId()));
+
         public IActionResult Add()
         {
             if (!this.UserIsDealer())
