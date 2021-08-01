@@ -1,6 +1,7 @@
 ﻿using CarRentingSystem.Data;
 using CarRentingSystem.Data.Models;
 using CarRentingSystem.Models;
+using CarRentingSystem.Models.Cars;
 using CarRentingSystem.Services.Cars.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -71,26 +72,118 @@ namespace CarRentingSystem.Services.Cars
                 .ToList();
 
         public IEnumerable<CarServiceModel> ByUser(string userId)
-            => this.GetCars(
-                this.data
+            => GetCars(this.data
                 .Cars
-                .Where(u => u.Dealer.UserId == userId));
-                
+                .Where(c => c.Dealer.UserId == userId));
 
 
+        public IEnumerable<CarCategoryServiceModel> AllCarCategories()
+            => this.data
+                .Categories
+                .Select(c => new CarCategoryServiceModel
+                {
+                    Id = c.Id,
+                    Name = c.Name,
+                })
+            .ToList();
 
-        private IEnumerable<CarServiceModel> GetCars(IQueryable<Car> carsQuery)
-            => carsQuery
-                 .Select(c => new CarServiceModel
-                 {
-                     Id = c.Id,
-                     Brand = c.Brand,
-                     Category = c.Category.Name,
-                     ImageUrl = c.ImageUrl,
-                     Year = c.Year,
-                     Model = c.Model,
-                 });
+        public CarDetailsServiceModel Details(int id)
+            => this.data
+                .Cars
+                .Where(c => c.Id == id)
+                .Select(c => new CarDetailsServiceModel
+                {
+                    Id = c.Id,
+                    Brand = c.Brand,
+                    Model = c.Model,
+                    Year = c.Year,
+                    CategoryName = c.Category.Name,
+                    CategoryId = c.CategoryId,
+                    DealerId = c.DealerId,
+                    DealerName = c.Dealer.Name,
+                    Description = c.Description,
+                    ImageUrl = c.ImageUrl,
+                    UserId = c.Dealer.UserId
 
+                })
+            .FirstOrDefault();
+
+        public int Create(
+            string brand,
+            string model,
+            int year,
+            string imageUrl,
+            int categoryId,
+            string description,
+            int dealerId)
+        {
+            var carData = new Car
+            {
+                Brand = brand,
+                Model = model,
+                Year = year,
+                ImageUrl = imageUrl,
+                CategoryId = categoryId,
+                Description = description,
+                DealerId = dealerId,
+            };
+
+            data.Cars.Add(carData);
+
+            data.SaveChanges();
+
+            return carData.Id;
+        }
+
+        public bool CategoryExist(int categoryId)
+            => this.data
+                .Categories
+                .Any(i => i.Id == categoryId);
+
+
+        public bool IsByDealer(int carId, int dealerId)
+            => this.data.Cars.Any(c => c.Id == carId && c.DealerId == dealerId);
+
+        public bool Edit(int id,
+            string brand,
+            string model,
+            int year,
+            string imageUrl,
+            int categoryId,
+            string description,
+            int dealerId)
+        {
+            var carData= this.data.Cars.Find(id);
+
+            if (carData==null)
+            {
+                return false;
+            }
+
+            carData.Brand = brand;
+            carData.Model = model;
+            carData.Year = year;
+            carData.ImageUrl = imageUrl;
+            carData.Description = description;
+            carData.CategoryId = categoryId;
+
+            this.data.SaveChanges();
+
+            return true;
+        } 
+
+        private static IEnumerable<CarServiceModel> GetCars(IQueryable<Car> carQuery)
+           => carQuery
+               .Select(c => new CarServiceModel
+               {
+                   Id = c.Id,
+                   Brand = c.Brand,
+                   Model = c.Model,
+                   Year = c.Year,
+                   ImageUrl = c.ImageUrl,
+                   CategoryName = c.Category.Name
+               })
+               .ToList();
 
     }
 }

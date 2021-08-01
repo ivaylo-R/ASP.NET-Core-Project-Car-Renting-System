@@ -12,9 +12,7 @@
 
         public int Year { get; init; }
 
-        public string UserId { get; init; }
-
-        public string Category { get; init; }
+        public string CategoryName { get; init; }
 
     }
 }
