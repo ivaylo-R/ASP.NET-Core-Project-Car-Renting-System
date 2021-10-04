@@ -1,63 +1,63 @@
-using CarRentingSystem.Data;
-using CarRentingSystem.Infrastucture;
-using CarRentingSystem.Services.Cars;
-using CarRentingSystem.Services.Cars.Interfaces;
-using CarRentingSystem.Services.Dealers;
-using CarRentingSystem.Services.Dealers.Interfaces;
-using CarRentingSystem.Services.Statistics;
-using CarRentingSystem.Services.Statistics.Interfaces;
-using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
-using Microsoft.AspNetCore.HttpsPolicy;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity.UI;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-
 namespace CarRentingSystem
 {
+    using CarRentingSystem.Data;
+    using CarRentingSystem.Data.Models;
+    using CarRentingSystem.Infrastructure;
+    using CarRentingSystem.Services.Cars;
+    using CarRentingSystem.Services.Dealers;
+    using CarRentingSystem.Services.Statistics;
+    using Microsoft.AspNetCore.Builder;
+    using Microsoft.AspNetCore.Hosting;
+    using Microsoft.AspNetCore.Identity;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.EntityFrameworkCore;
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.DependencyInjection;
+    using Microsoft.Extensions.Hosting;
+
     public class Startup
     {
-        public Startup(IConfiguration configuration)
-        {
-            Configuration = configuration;
-        }
+        public Startup(IConfiguration configuration) 
+            => this.Configuration = configuration;
 
         public IConfiguration Configuration { get; }
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<CarRentingDbContext>(options
-                => options.UseSqlServer(
-                    Configuration.GetConnectionString("DefaultConnection")));
+            services
+                .AddDbContext<CarRentingDbContext>(options => options
+                    .UseSqlServer(this.Configuration.GetConnectionString("DefaultConnection")));
+            
             services.AddDatabaseDeveloperPageExceptionFilter();
 
-            services.AddDefaultIdentity<IdentityUser>(options =>
-            {
-                options.Password.RequireDigit = false;
-                options.Password.RequireLowercase = false;
-                options.Password.RequireUppercase = false;
-                options.Password.RequireNonAlphanumeric = false;
-            })
+            services
+                .AddDefaultIdentity<User>(options =>
+                {
+                    options.Password.RequireDigit = false;
+                    options.Password.RequireLowercase = false;
+                    options.Password.RequireNonAlphanumeric = false;
+                    options.Password.RequireUppercase = false;
+                })
+                .AddRoles<IdentityRole>()
                 .AddEntityFrameworkStores<CarRentingDbContext>();
-            services.AddControllersWithViews();
 
-            services.AddTransient<IStatisticService, StatisticsService>();
+            services.AddAutoMapper(typeof(Startup));
+
+            services.AddMemoryCache();
+
+            services.AddControllersWithViews(options =>
+            {
+                options.Filters.Add<AutoValidateAntiforgeryTokenAttribute>();
+            });
+
             services.AddTransient<ICarService, CarService>();
             services.AddTransient<IDealerService, DealerService>();
+            services.AddTransient<IStatisticsService, StatisticsService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-
             app.PrepareDatabase();
-
 
             if (env.IsDevelopment())
             {
@@ -70,21 +70,22 @@ namespace CarRentingSystem
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
-            app.UseStaticFiles();
-
-            app.UseRouting();
-
-            app.UseAuthentication();
-            app.UseAuthorization();
-
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllerRoute(
-                    name: "default",
-                    pattern: "{controller=Home}/{action=Index}/{id?}");
-                endpoints.MapRazorPages();
-            });
+            app
+                .UseHttpsRedirection()
+                .UseStaticFiles()
+                .UseRouting()
+                .UseAuthentication()
+                .UseAuthorization()
+                .UseEndpoints(endpoints =>
+                {
+                    endpoints.MapControllerRoute(
+                        name: "Areas",
+                        pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}");
+                    
+                    endpoints.MapDefaultAreaRoute();
+                    endpoints.MapDefaultControllerRoute();
+                    endpoints.MapRazorPages();
+                });
         }
     }
 }

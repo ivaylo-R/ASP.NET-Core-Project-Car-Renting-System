@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-
-namespace CarRentingSystem.Models.Home
+﻿namespace CarRentingSystem.Models.Home
 {
     public class CarIndexViewModel
     {
@@ -13,5 +11,7 @@ namespace CarRentingSystem.Models.Home
         public string ImageUrl { get; init; }
 
         public int Year { get; init; }
+
+       
     }
 }

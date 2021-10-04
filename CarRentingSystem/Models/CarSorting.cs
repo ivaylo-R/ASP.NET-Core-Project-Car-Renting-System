@@ -2,9 +2,8 @@
 {
     public enum CarSorting
     {
-        DateCreated=0,
-        Year=1,
-        Brand=2,
-        Model=3
+        DateCreated = 0,
+        Year = 1,
+        BrandAndModel = 2
     }
 }

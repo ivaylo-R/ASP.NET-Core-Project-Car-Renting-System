@@ -1,21 +1,21 @@
-﻿using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-
-namespace CarRentingSystem.Data.Models
+﻿namespace CarRentingSystem.Data.Models
 {
-    using static Data.DataConstants.Dealer;
+    using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
+
+    using static DataConstants.Dealer;
+
     public class Dealer
     {
-        [Key]
         public int Id { get; init; }
+         
+        [Required]
+        [MaxLength(NameMaxLength)]
+        public string Name { get; set; }
 
         [Required]
-        [StringLength(DealerNameMaxLength,MinimumLength =DealerNameMinLength)]
-        public string Name { get; init; }
-
-        [Required]
-        [StringLength(DealerPhoneNumberMaxLength,MinimumLength =DealerPhoneNumberMinLength)]
-        public string PhoneNumber { get; init; }
+        [MaxLength(PhoneNumberMaxLength)]
+        public string PhoneNumber { get; set; }
 
         [Required]
         public string UserId { get; set; }

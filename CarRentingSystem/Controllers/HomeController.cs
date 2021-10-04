@@ -1,54 +1,46 @@
-﻿using CarRentingSystem.Data;
-using CarRentingSystem.Models;
-using CarRentingSystem.Models.Cars;
-using CarRentingSystem.Models.Home;
-using CarRentingSystem.Services.Statistics.Interfaces;
-using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
-using System.Linq;
-
-namespace CarRentingSystem.Controllers
+﻿namespace CarRentingSystem.Controllers
 {
+    using CarRentingSystem.Services.Cars;
+    using CarRentingSystem.Services.Cars.Models;
+    using Microsoft.AspNetCore.Mvc;
+    using Microsoft.Extensions.Caching.Memory;
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using static WebConstants.Cache;
+
     public class HomeController : Controller
     {
-        private readonly IStatisticService service;
-        private readonly CarRentingDbContext data;
+        private readonly IMemoryCache cache;
+        private readonly ICarService cars;
 
-        public HomeController(IStatisticService service, 
-            CarRentingDbContext data)
+        public HomeController(
+            IMemoryCache cache,
+            ICarService cars)
         {
-            this.service = service;
-            this.data = data;
+            this.cache = cache;
+            this.cars = cars;
         }
 
         public IActionResult Index()
         {
-            var cars = this.data
-                .Cars
-                .OrderByDescending(c => c.Id)
-                .Select(c => new CarIndexViewModel
-                {
-                    Id = c.Id,
-                    Brand = c.Brand,
-                    ImageUrl = c.ImageUrl,
-                    Year = c.Year,
-                    Model = c.Model,
-                })
-                .Take(3)
-                .ToList();
+            var latestCars = this.cache.Get<List<LatestCarsServiceModel>>(LatestCarsCacheKey);
 
-            var statistics = this.service.Total();
-
-            return View(new IndexViewModel
+            if (latestCars==null)
             {
-                TotalCars=statistics.TotalCars,
-                TotalUsers=statistics.TotalUsers,
-                Cars=cars,
-            });
+                latestCars = this.cars
+                    .Latest()
+                    .ToList();
+
+                var cacheOptions = new MemoryCacheEntryOptions()
+                    .SetAbsoluteExpiration(TimeSpan.FromMinutes(1));
+
+                this.cache.Set(LatestCarsCacheKey, latestCars, cacheOptions);
+            }
+
+            return View(latestCars);
         }
 
-        public IActionResult Error() => View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-
-
+        public IActionResult Error() => View();
     }
 }

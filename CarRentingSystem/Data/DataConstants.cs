@@ -2,31 +2,36 @@
 {
     public class DataConstants
     {
+        public class User
+        {
+            public const int FullNameMinLength = 5;
+            public const int FullNameMaxLength = 40;
+            public const int PasswordMinLength = 6;
+            public const int PasswordMaxLength = 100;
+        }
+
         public class Car
         {
-            public const int CarBrandMaxLength = 20;
-            public const int CarBrandMinLength = 2;
-            public const int CarModelMaxLength = 30;
-            public const int CarModelMinLength = 3;
-            public const int CarDescriptionMaxLength = 1000;
-            public const int CarDescriptionMinLength = 6;
-            public const int CarYearMaxValue = 2100;
-            public const int CarYearMinValue = 2000;
+            public const int BrandMinLength = 2;
+            public const int BrandMaxLength = 20;
+            public const int ModelMinLength = 2;
+            public const int ModelMaxLength = 30;
+            public const int DescriptionMinLength = 10;
+            public const int YearMinValue = 2000;
+            public const int YearMaxValue = 2050;
         }
 
         public class Category
         {
-
-            public const int CategoryNameMinLength = 2;
-            public const int CategoryNameMaxLength = 20;
+            public const int NameMaxLength = 25;
         }
 
         public class Dealer
         {
-            public const int DealerNameMaxLength = 30;
-            public const int DealerNameMinLength = 2;
-            public const int DealerPhoneNumberMinLength = 6;
-            public const int DealerPhoneNumberMaxLength = 20;
+            public const int NameMinLength = 2;
+            public const int NameMaxLength = 25;
+            public const int PhoneNumberMinLength = 6;
+            public const int PhoneNumberMaxLength = 30;
         }
     }
 }

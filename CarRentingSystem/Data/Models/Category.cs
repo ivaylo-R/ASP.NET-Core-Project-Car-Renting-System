@@ -1,18 +1,17 @@
-﻿
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-
-namespace CarRentingSystem.Data.Models
+﻿namespace CarRentingSystem.Data.Models
 {
-    using static Data.DataConstants.Category;
+    using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations;
+
+    using static DataConstants.Category;
 
     public class Category
     {
         public int Id { get; init; }
 
         [Required]
-        [StringLength(CategoryNameMaxLength,MinimumLength =CategoryNameMinLength)]
-        public string Name { get; init; }
+        [MaxLength(NameMaxLength)]
+        public string Name { get; set; }
 
         public IEnumerable<Car> Cars { get; init; } = new List<Car>();
     }

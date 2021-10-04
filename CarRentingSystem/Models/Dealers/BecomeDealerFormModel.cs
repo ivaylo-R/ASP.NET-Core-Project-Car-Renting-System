@@ -1,19 +1,18 @@
-﻿using System.ComponentModel.DataAnnotations;
-
-namespace CarRentingSystem.Models.Dealers
+﻿namespace CarRentingSystem.Models.Dealers
 {
+    using System.ComponentModel.DataAnnotations;
 
     using static Data.DataConstants.Dealer;
+
     public class BecomeDealerFormModel
     {
         [Required]
-        [StringLength(DealerNameMaxLength,MinimumLength =DealerNameMinLength)]
-        public string Name { get; init; }
+        [StringLength(NameMaxLength, MinimumLength = NameMinLength)]
+        public string Name { get; set; }
 
         [Required]
-        [Display(Name="Phone Number")]
-        [StringLength(DealerPhoneNumberMaxLength, MinimumLength = DealerPhoneNumberMinLength)]
-        public string PhoneNumber { get; init; }
-
+        [StringLength(PhoneNumberMaxLength, MinimumLength = PhoneNumberMinLength)]
+        [Display(Name = "Phone Number")] 
+        public string PhoneNumber { get; set; }
     }
 }

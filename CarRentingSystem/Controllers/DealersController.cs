@@ -1,33 +1,34 @@
-﻿using CarRentingSystem.Data;
-using CarRentingSystem.Data.Models;
-using CarRentingSystem.Infrastucture;
-using CarRentingSystem.Models.Dealers;
-using CarRentingSystem.Services.Dealers.Interfaces;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using System.Linq;
-
-namespace CarRentingSystem.Controllers
+﻿namespace CarRentingSystem.Controllers
 {
+    using System.Linq;
+    using CarRentingSystem.Data;
+    using CarRentingSystem.Data.Models;
+    using CarRentingSystem.Infrastructure;
+    using CarRentingSystem.Models.Dealers;
+    using Microsoft.AspNetCore.Authorization;
+    using Microsoft.AspNetCore.Mvc;
+
     public class DealersController : Controller
     {
-        private readonly IDealerService dealerService;
+        private readonly CarRentingDbContext data;
 
-        public DealersController(IDealerService dealerService)
-            => this.dealerService = dealerService;
-
+        public DealersController(CarRentingDbContext data) 
+            => this.data = data;
 
         [Authorize]
         public IActionResult Become() => View();
-        
-        [Authorize]
+
         [HttpPost]
+        [Authorize]
         public IActionResult Become(BecomeDealerFormModel dealer)
         {
-            var userId = this.User.GetId();
+            var userId = this.User.Id();
 
+            var userIdAlreadyDealer = this.data
+                .Dealers
+                .Any(d => d.UserId == userId);
 
-            if (dealerService.IsDealer(userId))
+            if (userIdAlreadyDealer)
             {
                 return BadRequest();
             }
@@ -37,9 +38,17 @@ namespace CarRentingSystem.Controllers
                 return View(dealer);
             }
 
-            dealerService.RegisterDealer(dealer, userId);
+            var dealerData = new Dealer
+            {
+                Name = dealer.Name,
+                PhoneNumber = dealer.PhoneNumber,
+                UserId = userId
+            };
 
-            return RedirectToAction("All","Cars");
+            this.data.Dealers.Add(dealerData);
+            this.data.SaveChanges();
+
+            return RedirectToAction("All", "Cars");
         }
     }
 }
